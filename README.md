@@ -9,7 +9,7 @@
 
 ---
 
-## 📌 1. Project Overview
+##  1. Project Overview
 This repository contains an end-to-end Machine Learning and Web Application pipeline designed to detect fraudulent credit card transactions in real-time. Operating on anonymized European cardholder records, the system tackles extreme class imbalance (less than 0.2% fraud instances) using **SMOTE** (Synthetic Minority Over-sampling Technique) and an ensemble **Random Forest Classifier** to maximize **Recall**, **Precision**, and **ROC-AUC**.
 
 The project features a **modern, interactive Web Dashboard (Flask + Tailwind CSS)** that allows users to test single transactions live or upload entire CSV files for batch fraud scoring.
@@ -19,7 +19,7 @@ The project features a **modern, interactive Web Dashboard (Flask + Tailwind CSS
 
 ---
 
-## ⚠️ 2. Problem Statement
+##  2. Problem Statement
 Credit card fraud causes multi-billion dollar losses annually. Designing automated anomaly detection systems presents unique challenges:
 1. **Extreme Class Imbalance:** Fraudulent transactions represent less than 0.2% of all activity. Naive models default to predicting everything as legitimate, achieving high raw accuracy while failing to intercept actual fraud.
 2. **Cost Asymmetry:** A False Negative (failing to catch a fraudster) incurs direct financial theft and compliance penalties, whereas a False Positive merely flags secondary verification.
@@ -27,7 +27,7 @@ Credit card fraud causes multi-billion dollar losses annually. Designing automat
 
 ---
 
-## 🎯 3. Objective
+##  3. Objective
 * Develop a robust data preprocessing and scaling pipeline tailored for financial transaction features.
 * Resolve severe class imbalance via **SMOTE** applied strictly on the training partition to prevent data leakage.
 * Train and benchmark **Logistic Regression** (baseline) against **Random Forest** (ensemble).
@@ -36,7 +36,7 @@ Credit card fraud causes multi-billion dollar losses annually. Designing automat
 
 ---
 
-## 🏗️ 4. Solution Architecture
+##  4. Solution Architecture
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -72,7 +72,7 @@ Credit card fraud causes multi-billion dollar losses annually. Designing automat
 
 ---
 
-## ✨ 5. Key Features
+##  5. Key Features
 
 * **Interactive Web Dashboard:** Modern, responsive UI with real-time risk gauges (0% - 100%), color-coded verdicts, and recommended bank actions.
 * **Batch CSV Upload:** Upload any real transaction `.csv` file directly from the browser for automated bulk fraud scoring and flagged transaction reporting.
@@ -83,7 +83,7 @@ Credit card fraud causes multi-billion dollar losses annually. Designing automat
 
 ---
 
-## 🛠️ 6. Technology Stack
+##  6. Technology Stack
 
 * **Language:** Python 3.9+
 * **Machine Learning:** Scikit-Learn, Imbalanced-Learn (SMOTE)
@@ -94,7 +94,7 @@ Credit card fraud causes multi-billion dollar losses annually. Designing automat
 
 ---
 
-## 📂 7. Project Structure
+##  7. Project Structure
 
 ```text
 credit-card-fraud-detection/
@@ -127,7 +127,7 @@ credit-card-fraud-detection/
 
 ---
 
-## 🚀 8. Quick Start Guide
+##  8. Quick Start Guide
 
 ### 1. Clone the Repository
 ```powershell
@@ -167,7 +167,7 @@ python scripts/fraud_detection.py
 
 ---
 
-## 📋 10. Project Feature Checklist
+##  10. Project Feature Checklist
 
 - [x] Data Ingestion & Data Hygiene Verification
 - [x] StandardScaler Normalization (`Time` & `Amount`)
@@ -180,7 +180,7 @@ python scripts/fraud_detection.py
 
 ---
 
-## 👨‍💻 11. Developed By
+##  11. Developed By
 
 * **Prabhdeep Singh (Prabh Gill)**
   * **GitHub Profile:** [@Prabh-Gill-7](https://github.com/Prabh-Gill-7)
@@ -189,5 +189,5 @@ python scripts/fraud_detection.py
 
 ---
 
-## 📜 12. License
+##  12. License
 Distributed under the MIT License. See `LICENSE` for more information.
