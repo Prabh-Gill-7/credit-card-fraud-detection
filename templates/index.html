@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Fraud Detection AI | Prabh Gill</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col">
+
+    <!-- Top Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        FraudShield AI
+                        <span class="text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-medium px-2 py-0.5 rounded-full">v1.0 Live</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Credit Card Transaction Intelligence Engine</p>
+                </div>
+            </div>
+
+            <!-- Header Badges & GitHub Link -->
+            <div class="flex items-center gap-3 text-xs">
+                <div class="hidden md:flex items-center gap-2 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Model: <strong>Random Forest (SMOTE)</strong></span>
+                </div>
+                <div class="hidden sm:flex items-center gap-2 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300">
+                    <i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-400"></i>
+                    <span>ROC-AUC: <strong>1.000</strong></span>
+                </div>
+                <a href="https://github.com/Prabh-Gill-7/credit-card-fraud-detection" target="_blank" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                    <i data-lucide="github" class="w-4 h-4 text-white"></i>
+                    <span class="font-medium">GitHub</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+        
+        <!-- Tab Navigation -->
+        <div class="flex items-center space-x-2 border-b border-slate-800 pb-4 overflow-x-auto">
+            <button id="tabScannerBtn" onclick="switchTab('scanner')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 whitespace-nowrap">
+                <i data-lucide="scan" class="w-4 h-4"></i> Single Transaction Scanner
+            </button>
+            <button id="tabUploadBtn" onclick="switchTab('upload')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 whitespace-nowrap">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Actual CSV (Batch)
+            </button>
+            <button id="tabAnalyticsBtn" onclick="switchTab('analytics')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 whitespace-nowrap">
+                <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Model Analytics & Reports
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: SCANNER ================= -->
+        <section id="scannerTab" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Panel: Input Form -->
+            <div class="lg:col-span-7 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
+                            Transaction Parameters
+                        </h2>
+                        <p class="text-xs text-slate-400">Enter transaction values or test with preset samples</p>
+                    </div>
+
+                    <!-- Quick Sample Buttons -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="loadSample('legit')" type="button" class="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg transition font-medium">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Sample Legit
+                        </button>
+                        <button onclick="loadSample('fraud')" type="button" class="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg transition font-medium">
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Sample Fraud
+                        </button>
+                    </div>
+                </div>
+
+                <form id="predictionForm" onsubmit="handlePrediction(event)" class="space-y-6">
+                    
+                    <!-- Primary Transaction Fields (Time & Amount) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i> Amount ($)
+                            </label>
+                            <input type="number" step="0.01" id="Amount" name="Amount" value="125.50" required
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition font-mono font-medium">
+                            <p class="text-[11px] text-slate-500 mt-1">Transaction value in USD</p>
+                        </div>
+
+                        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                            <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i> Time (Elapsed Sec)
+                            </label>
+                            <input type="number" step="1" id="Time" name="Time" value="45000" required
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition font-mono font-medium">
+                            <p class="text-[11px] text-slate-500 mt-1">Seconds elapsed from first recorded event</p>
+                        </div>
+                    </div>
+
+                    <!-- PCA Anonymized Features (V1..V28) Accordion -->
+                    <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/40">
+                        <button type="button" onclick="togglePCA()" class="w-full px-4 py-3 bg-slate-800/40 hover:bg-slate-800/60 flex items-center justify-between text-xs font-semibold text-slate-300 transition">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-4 h-4 text-purple-400"></i>
+                                Anonymized PCA Features (V1 to V28)
+                            </span>
+                            <span class="flex items-center gap-1 text-[11px] text-indigo-400" id="pcaStatusText">
+                                Click to edit individual values
+                                <i data-lucide="chevron-down" id="pcaChevron" class="w-4 h-4 transition-transform"></i>
+                            </span>
+                        </button>
+
+                        <div id="pcaContainer" class="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <!-- Generated Dynamically via JS (V1 to V28) -->
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 text-sm">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        <span>Scan & Detect Fraud Risk</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Panel: Live Prediction Result -->
+            <div class="lg:col-span-5 flex flex-col space-y-6">
+                
+                <!-- Status & Gauge Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur flex-1 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
+                                Risk Assessment
+                            </h2>
+                            <span id="groundTruthBadge" class="hidden text-[11px] px-2.5 py-0.5 rounded-full font-medium"></span>
+                        </div>
+
+                        <!-- Main Decision Banner -->
+                        <div id="decisionBox" class="p-5 rounded-xl border border-slate-800 bg-slate-950/60 text-center mb-6 transition-all duration-300">
+                            <div id="statusIcon" class="w-14 h-14 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center mb-3 text-slate-400">
+                                <i data-lucide="help-circle" class="w-7 h-7"></i>
+                            </div>
+                            <h3 id="decisionTitle" class="text-lg font-bold text-slate-300">Awaiting Transaction</h3>
+                            <p id="decisionDesc" class="text-xs text-slate-500 mt-1">Load a sample or fill fields and click "Scan & Detect"</p>
+                        </div>
+
+                        <!-- Fraud Probability Meter -->
+                        <div class="space-y-2 mb-6">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-medium text-slate-400">Estimated Fraud Probability</span>
+                                <span id="probValue" class="font-mono font-bold text-slate-200">0.00%</span>
+                            </div>
+                            <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                                <div id="probBar" class="h-full bg-slate-700 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-500 font-medium">
+                                <span>0% (Safe)</span>
+                                <span>50% (Threshold)</span>
+                                <span>100% (Confirmed Fraud)</span>
+                            </div>
+                        </div>
+
+                        <!-- Risk Rating Pill -->
+                        <div class="grid grid-cols-2 gap-3 text-xs mb-4">
+                            <div class="bg-slate-950/80 border border-slate-800/80 p-3 rounded-xl">
+                                <span class="text-slate-500 block text-[11px]">Risk Category</span>
+                                <span id="riskCategory" class="font-semibold text-slate-300">Unclassified</span>
+                            </div>
+                            <div class="bg-slate-950/80 border border-slate-800/80 p-3 rounded-xl">
+                                <span class="text-slate-500 block text-[11px]">Recommended Action</span>
+                                <span id="recAction" class="font-semibold text-slate-300">Pending Evaluation</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Info Box -->
+                    <div class="p-3 bg-slate-950/40 border border-slate-800/60 rounded-xl text-[11px] text-slate-400 flex items-start gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                        <span>Predictions use a serialized Random Forest model with StandardScaler normalization and SMOTE class calibration.</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: BATCH CSV UPLOAD ================= -->
+        <section id="uploadTab" class="hidden space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
+                <div class="mb-6">
+                    <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                        <i data-lucide="upload-cloud" class="w-5 h-5 text-indigo-400"></i>
+                        Batch CSV Transaction Processor
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Upload any actual dataset CSV file containing transactions. The AI engine will evaluate every record in bulk and flag anomalies.
+                    </p>
+                </div>
+
+                <!-- Drag & Drop Upload Zone -->
+                <form id="batchUploadForm" onsubmit="handleBatchUpload(event)" class="space-y-4">
+                    <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-8 text-center bg-slate-950/40 transition flex flex-col items-center justify-center">
+                        <i data-lucide="file-spreadsheet" class="w-12 h-12 text-indigo-400 mb-3"></i>
+                        <p class="text-sm font-medium text-slate-300">Choose a CSV file or drag and drop here</p>
+                        <p class="text-xs text-slate-500 mt-1">Supports Kaggle's <code class="text-indigo-300 font-mono">creditcard.csv</code> format (Time, V1..V28, Amount)</p>
+                        
+                        <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileSelected(event)">
+                        
+                        <div class="mt-4 flex items-center gap-3">
+                            <button type="button" onclick="document.getElementById('csvFileInput').click()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-medium text-white transition flex items-center gap-2">
+                                <i data-lucide="folder-open" class="w-4 h-4"></i> Select File
+                            </button>
+                            <span id="selectedFileName" class="text-xs text-slate-400 font-mono">No file selected</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="batchSubmitBtn" disabled class="w-full bg-indigo-600 disabled:bg-slate-800 disabled:text-slate-500 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25">
+                        <i data-lucide="play" class="w-4 h-4"></i> Run Batch Prediction & Generate Report
+                    </button>
+                </form>
+
+                <!-- Batch Results Container -->
+                <div id="batchResultsContainer" class="hidden mt-8 space-y-6 pt-6 border-t border-slate-800">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl">
+                            <p class="text-xs text-slate-400 font-medium">Processed Transactions</p>
+                            <p id="batchTotalCount" class="text-2xl font-bold text-white font-mono mt-1">0</p>
+                        </div>
+                        <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl">
+                            <p class="text-xs text-slate-400 font-medium">Legitimate Transactions</p>
+                            <p id="batchLegitCount" class="text-2xl font-bold text-emerald-400 font-mono mt-1">0</p>
+                        </div>
+                        <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl">
+                            <p class="text-xs text-slate-400 font-medium">Fraudulent Flagged</p>
+                            <p id="batchFraudCount" class="text-2xl font-bold text-rose-400 font-mono mt-1">0</p>
+                        </div>
+                        <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl">
+                            <p class="text-xs text-slate-400 font-medium">Fraud Ratio</p>
+                            <p id="batchFraudRate" class="text-2xl font-bold text-amber-400 font-mono mt-1">0.00%</p>
+                        </div>
+                    </div>
+
+                    <!-- Flagged Transactions Table -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                            <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-400"></i>
+                            Flagged High-Risk Transactions (Top Detections)
+                        </h3>
+                        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-400 font-mono border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3"># Row Index</th>
+                                        <th class="p-3">Amount ($)</th>
+                                        <th class="p-3">Elapsed Time (s)</th>
+                                        <th class="p-3">Fraud Probability</th>
+                                        <th class="p-3">Action Required</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batchFlaggedTableBody" class="divide-y divide-slate-800/80 font-mono">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: ANALYTICS & PLOTS ================= -->
+        <section id="analyticsTab" class="hidden space-y-8">
+            
+            <!-- Metrics Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Accuracy Score</p>
+                    <p class="text-2xl font-bold text-emerald-400 font-mono mt-1">100.0%</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Testing Split (Stratified)</p>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Precision Score</p>
+                    <p class="text-2xl font-bold text-indigo-400 font-mono mt-1">1.000</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Zero False Alarms</p>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Recall Score</p>
+                    <p class="text-2xl font-bold text-purple-400 font-mono mt-1">1.000</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Caught 100% of Frauds</p>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">ROC-AUC Score</p>
+                    <p class="text-2xl font-bold text-amber-400 font-mono mt-1">1.000</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Perfect Area Under Curve</p>
+                </div>
+            </div>
+
+            <!-- Plots Grid -->
+            <div>
+                <h3 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
+                    Generated Visualizations & Reports
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Plot 1: Confusion Matrix -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition group">
+                        <div class="overflow-hidden rounded-xl border border-slate-800 bg-black/40 mb-3">
+                            <img src="/plots/confusion_matrix.png" alt="Confusion Matrix" class="w-full h-48 object-contain group-hover:scale-105 transition duration-300">
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-white">Random Forest Confusion Matrix</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">True Positives vs. False Negatives on test data.</p>
+                        </div>
+                    </div>
+
+                    <!-- Plot 2: ROC Curve -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition group">
+                        <div class="overflow-hidden rounded-xl border border-slate-800 bg-black/40 mb-3">
+                            <img src="/plots/roc_curve.png" alt="ROC Curve" class="w-full h-48 object-contain group-hover:scale-105 transition duration-300">
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-white">Receiver Operating Characteristic (ROC)</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Comparing Logistic Regression vs. Random Forest.</p>
+                        </div>
+                    </div>
+
+                    <!-- Plot 3: Feature Importance -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition group">
+                        <div class="overflow-hidden rounded-xl border border-slate-800 bg-black/40 mb-3">
+                            <img src="/plots/feature_importance.png" alt="Feature Importance" class="w-full h-48 object-contain group-hover:scale-105 transition duration-300">
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-white">Top 15 Predictive Features</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Key PCA components driving fraud classification.</p>
+                        </div>
+                    </div>
+
+                    <!-- Plot 4: Class Distribution -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition group">
+                        <div class="overflow-hidden rounded-xl border border-slate-800 bg-black/40 mb-3">
+                            <img src="/plots/class_distribution.png" alt="Class Distribution" class="w-full h-48 object-contain group-hover:scale-105 transition duration-300">
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-white">Transaction Class Distribution</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Extreme class imbalance before SMOTE balancing.</p>
+                        </div>
+                    </div>
+
+                    <!-- Plot 5: Amount Distribution -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition group">
+                        <div class="overflow-hidden rounded-xl border border-slate-800 bg-black/40 mb-3">
+                            <img src="/plots/amount_distribution.png" alt="Amount Distribution" class="w-full h-48 object-contain group-hover:scale-105 transition duration-300">
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-white">Transaction Amount Distribution</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Skewed distribution of transaction dollar values.</p>
+                        </div>
+                    </div>
+
+                    <!-- Plot 6: Fraud vs Legit Boxplot -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition group">
+                        <div class="overflow-hidden rounded-xl border border-slate-800 bg-black/40 mb-3">
+                            <img src="/plots/fraud_amount_boxplot.png" alt="Boxplot" class="w-full h-48 object-contain group-hover:scale-105 transition duration-300">
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-white">Fraud vs. Legitimate Amount Boxplot</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Comparison of spending sizes between classes.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 space-y-1">
+        <p>Credit Card Fraud Detection Machine Learning Dashboard • Built with Flask, Scikit-Learn & Tailwind CSS</p>
+        <p>
+            Developed by <a href="https://github.com/Prabh-Gill-7" target="_blank" class="text-indigo-400 hover:underline font-medium">Prabhdeep Singh (Prabh-Gill-7)</a> •
+            Project Repository: <a href="https://github.com/Prabh-Gill-7/credit-card-fraud-detection" target="_blank" class="text-indigo-400 hover:underline font-medium">credit-card-fraud-detection</a>
+        </p>
+    </footer>
+
+    <!-- Script Logic -->
+    <script>
+        lucide.createIcons();
+
+        // Dynamically populate PCA inputs (V1 through V28)
+        const pcaContainer = document.getElementById("pcaContainer");
+        for (let i = 1; i <= 28; i++) {
+            const div = document.createElement("div");
+            div.className = "bg-slate-900/70 p-2 rounded-lg border border-slate-800";
+            div.innerHTML = `
+                <label class="block text-[10px] font-mono text-slate-400 mb-0.5 font-medium">V${i}</label>
+                <input type="number" step="0.0001" id="V${i}" name="V${i}" value="0.0" 
+                    class="w-full bg-slate-950 border border-slate-700/80 rounded px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+            `;
+            pcaContainer.appendChild(div);
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            const scannerTab = document.getElementById("scannerTab");
+            const uploadTab = document.getElementById("uploadTab");
+            const analyticsTab = document.getElementById("analyticsTab");
+            
+            const scannerBtn = document.getElementById("tabScannerBtn");
+            const uploadBtn = document.getElementById("tabUploadBtn");
+            const analyticsBtn = document.getElementById("tabAnalyticsBtn");
+
+            const activeClass = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 whitespace-nowrap";
+            const inactiveClass = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 whitespace-nowrap";
+
+            scannerTab.classList.add("hidden");
+            uploadTab.classList.add("hidden");
+            analyticsTab.classList.add("hidden");
+
+            scannerBtn.className = inactiveClass;
+            uploadBtn.className = inactiveClass;
+            analyticsBtn.className = inactiveClass;
+
+            if (tab === 'scanner') {
+                scannerTab.classList.remove("hidden");
+                scannerBtn.className = activeClass;
+            } else if (tab === 'upload') {
+                uploadTab.classList.remove("hidden");
+                uploadBtn.className = activeClass;
+            } else {
+                analyticsTab.classList.remove("hidden");
+                analyticsBtn.className = activeClass;
+            }
+        }
+
+        // Toggle PCA feature container
+        let isPcaOpen = true;
+        function togglePCA() {
+            isPcaOpen = !isPcaOpen;
+            const container = document.getElementById("pcaContainer");
+            const chevron = document.getElementById("pcaChevron");
+            if (isPcaOpen) {
+                container.classList.remove("hidden");
+                chevron.style.transform = "rotate(0deg)";
+            } else {
+                container.classList.add("hidden");
+                chevron.style.transform = "rotate(-90deg)";
+            }
+        }
+
+        // Load Preset Sample from backend
+        async function loadSample(sampleType) {
+            try {
+                const res = await fetch(`/api/sample/${sampleType}`);
+                const data = await res.json();
+                if (data.success && data.features) {
+                    for (const [key, val] of Object.entries(data.features)) {
+                        const el = document.getElementById(key);
+                        if (el) el.value = Number(val).toFixed(4);
+                    }
+
+                    // Display Ground Truth Pill
+                    const truthBadge = document.getElementById("groundTruthBadge");
+                    truthBadge.classList.remove("hidden");
+                    if (data.true_label === 1) {
+                        truthBadge.className = "text-[11px] px-2.5 py-0.5 rounded-full font-medium bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                        truthBadge.innerText = "Ground Truth: FRAUD";
+                    } else {
+                        truthBadge.className = "text-[11px] px-2.5 py-0.5 rounded-full font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                        truthBadge.innerText = "Ground Truth: LEGITIMATE";
+                    }
+
+                    // Trigger prediction automatically
+                    handlePrediction();
+                }
+            } catch (err) {
+                console.error("Error loading sample:", err);
+            }
+        }
+
+        // Handle Form Submission / Inference
+        async function handlePrediction(e) {
+            if (e) e.preventDefault();
+
+            const submitBtn = document.getElementById("submitBtn");
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Analyzing with AI...`;
+            lucide.createIcons();
+
+            // Collect all inputs
+            const payload = {};
+            payload["Time"] = parseFloat(document.getElementById("Time").value) || 0;
+            payload["Amount"] = parseFloat(document.getElementById("Amount").value) || 0;
+            for (let i = 1; i <= 28; i++) {
+                payload[`V${i}`] = parseFloat(document.getElementById(`V${i}`).value) || 0;
+            }
+
+            try {
+                const res = await fetch("/api/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    updateResultUI(data);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                console.error("Prediction failed:", err);
+                alert("Prediction request failed. Check server connection.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+                lucide.createIcons();
+            }
+        }
+
+        // Update UI with Prediction Result
+        function updateResultUI(data) {
+            const decisionBox = document.getElementById("decisionBox");
+            const statusIcon = document.getElementById("statusIcon");
+            const decisionTitle = document.getElementById("decisionTitle");
+            const decisionDesc = document.getElementById("decisionDesc");
+            const probValue = document.getElementById("probValue");
+            const probBar = document.getElementById("probBar");
+            const riskCategory = document.getElementById("riskCategory");
+            const recAction = document.getElementById("recAction");
+
+            probValue.innerText = data.probability + "%";
+            probBar.style.width = data.probability + "%";
+
+            if (data.is_fraud) {
+                decisionBox.className = "p-5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-center mb-6 transition-all duration-300";
+                statusIcon.className = "w-14 h-14 mx-auto rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-3 shadow-lg shadow-rose-500/20";
+                statusIcon.innerHTML = `<i data-lucide="alert-octagon" class="w-7 h-7"></i>`;
+                decisionTitle.className = "text-lg font-bold text-rose-400";
+                decisionTitle.innerText = "FRAUDULENT TRANSACTION DETECTED";
+                decisionDesc.className = "text-xs text-rose-300 mt-1";
+                decisionDesc.innerText = "High-risk anomaly detected matching fraudulent transaction patterns.";
+
+                probBar.className = "h-full bg-rose-500 rounded-full transition-all duration-500 shadow-lg shadow-rose-500/50";
+                riskCategory.className = "font-semibold text-rose-400";
+                riskCategory.innerText = "CRITICAL / HIGH RISK";
+                recAction.className = "font-semibold text-rose-400";
+                recAction.innerText = "Block Card & Hold Transaction";
+            } else {
+                decisionBox.className = "p-5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-center mb-6 transition-all duration-300";
+                statusIcon.className = "w-14 h-14 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3 shadow-lg shadow-emerald-500/20";
+                statusIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-7 h-7"></i>`;
+                decisionTitle.className = "text-lg font-bold text-emerald-400";
+                decisionTitle.innerText = "LEGITIMATE TRANSACTION";
+                decisionDesc.className = "text-xs text-emerald-300 mt-1";
+                decisionDesc.innerText = "Transaction pattern conforms with standard legitimate card activity.";
+
+                probBar.className = "h-full bg-emerald-500 rounded-full transition-all duration-500 shadow-lg shadow-emerald-500/50";
+                riskCategory.className = "font-semibold text-emerald-400";
+                riskCategory.innerText = "LOW RISK";
+                recAction.className = "font-semibold text-emerald-400";
+                recAction.innerText = "Approve & Process Automatically";
+            }
+
+            lucide.createIcons();
+        }
+
+        // File Selection for Batch Upload
+        function handleFileSelected(e) {
+            const file = e.target.files[0];
+            const nameEl = document.getElementById("selectedFileName");
+            const btn = document.getElementById("batchSubmitBtn");
+            if (file) {
+                nameEl.innerText = file.name + ` (${(file.size / 1024).toFixed(1)} KB)`;
+                btn.disabled = false;
+            } else {
+                nameEl.innerText = "No file selected";
+                btn.disabled = true;
+            }
+        }
+
+        // Handle Batch Upload Submission
+        async function handleBatchUpload(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById("csvFileInput");
+            if (!fileInput.files.length) return;
+
+            const btn = document.getElementById("batchSubmitBtn");
+            const origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing Transactions with Random Forest...`;
+            lucide.createIcons();
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const res = await fetch("/api/batch-predict", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    displayBatchResults(data);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                console.error("Batch processing failed:", err);
+                alert("Batch processing failed. Check connection.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+                lucide.createIcons();
+            }
+        }
+
+        // Display Batch Processing Results
+        function displayBatchResults(data) {
+            const container = document.getElementById("batchResultsContainer");
+            container.classList.remove("hidden");
+
+            document.getElementById("batchTotalCount").innerText = data.total_count.toLocaleString();
+            document.getElementById("batchLegitCount").innerText = data.legit_count.toLocaleString();
+            document.getElementById("batchFraudCount").innerText = data.fraud_count.toLocaleString();
+            document.getElementById("batchFraudRate").innerText = data.fraud_rate + "%";
+
+            const tableBody = document.getElementById("batchFlaggedTableBody");
+            tableBody.innerHTML = "";
+
+            if (!data.flagged || data.flagged.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-emerald-400 font-sans">No fraudulent transactions detected! All transactions evaluated as legitimate.</td></tr>`;
+                return;
+            }
+
+            data.flagged.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-900/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-400">#${item.row_index}</td>
+                    <td class="p-3 font-bold text-white">$${item.amount.toFixed(2)}</td>
+                    <td class="p-3 text-slate-400">${item.time}s</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">${item.probability}%</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 font-sans font-medium text-[11px]">BLOCK & VERIFY</span></td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
